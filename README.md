@@ -22,7 +22,7 @@ persistent state, escalation rules, and a human-comprehension gate at the end.
 ## Quick start
 
 ```bash
-git clone https://github.com/<your-org>/loopkit.git
+git clone https://github.com/dhruvappstack/loopkit.git
 cd loopkit
 ./install.sh --target /path/to/your/project            # all adapters
 ./install.sh --target /path/to/your/project --agent claude   # or: copilot | cursor | generic
