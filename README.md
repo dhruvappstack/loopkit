@@ -1,15 +1,12 @@
 # LoopKit
 
-**A loop engineering kit for AI coding agents.** Drop it into any repo and your agent (Claude Code, GitHub Copilot,
-Cursor, or anything that reads `AGENTS.md`) works in measurable, verifiable loops instead of one-shot prompts.
+AI coding agents can write code quickly. Getting them to stay on task, verify their work, and leave a clear handoff is harder.
 
-> Prompt engineering asks: *"What is the perfect prompt?"*
-> Loop engineering asks: *"What system lets an agent converge on a verified goal, and keeps me in control?"*
+**LoopKit gives your agent a repeatable engineering workflow**: define a goal, make a small change, verify the result, and adjust until the work is done. It works with Claude Code, GitHub Copilot, Cursor, and other tools that read `AGENTS.md`.
 
-Where spec-driven kits focus on writing specs up front, LoopKit focuses on the **runtime**: Goal, Action, Observe, Adjust,
-persistent state, escalation rules, and a human-comprehension gate at the end.
+Instead of relying on a perfect one-shot prompt, LoopKit helps keep work measurable, resumable, and reviewable—with you in control of intent and acceptance.
 
-## Features
+## What you get
 - **One master protocol** (`.loop/LOOP.md`) for design, architecture, development, build, deploy, and every layer of testing
 - **Measurable goals**: every criterion has a `Verify:` command and recorded `Evidence:`
 - **The spine**: `intent`, `goal`, `state`, `log`, `lessons`, `decisions` so any session can resume
@@ -21,23 +18,21 @@ persistent state, escalation rules, and a human-comprehension gate at the end.
 
 ## Quick start
 
+Install LoopKit into an existing project:
+
 ```bash
 git clone https://github.com/dhruvappstack/loopkit.git
 cd loopkit
-./install.sh --target /path/to/your/project            # all adapters
-./install.sh --target /path/to/your/project --agent claude   # or: copilot | cursor | generic
+./install.sh --target /path/to/your/project
 ```
 
-Windows: `./install.ps1 -Target C:\path\to\project -Agent claude`
+Replace `/path/to/your/project` with your project's path. By default, the installer adds all adapters. To install only one, use `--agent claude`, `--agent copilot`, `--agent cursor`, or `--agent generic`.
 
-Then:
-1. Fill in `.loop/intent.md` (the why, which you own).
-2. Start a task:
-   - **Claude Code**: `/loop Fix the flaky checkout test and add a regression test`
-   - **GitHub Copilot (agent mode)**: run the `loop` prompt from `.github/prompts/`
-   - **Anything else**: paste "Follow `.loop/LOOP.md`. Task: ..."
-3. Review the restated goal and verification plan, then say **go**.
-4. At exit, read the Handoff Report and work through its "Verify this yourself" list.
+On Windows, run `./install.ps1 -Target C:\path\to\project` instead.
+
+Then fill in `.loop/intent.md`, start a task with your coding agent, and review its proposed goal and verification plan before it begins. When the task is done, check the Handoff Report and verify the results yourself.
+
+For example, in Claude Code you can start with `/loop Fix the flaky checkout test and add a regression test`. In GitHub Copilot, run the `loop` prompt from `.github/prompts/`.
 
 ## What gets installed
 
