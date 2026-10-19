@@ -1,0 +1,8 @@
+---
+description: LoopKit loop engineering protocol for non-trivial engineering tasks
+alwaysApply: false
+---
+For non-trivial tasks (features, bugs, refactors, builds, deploys, tests, design), follow `.loop/LOOP.md`.
+Read the spine in `.loop/`, define a measurable goal with Verify commands, iterate
+Goal -> Action -> Observe -> Adjust in small steps, persist state every iteration,
+and finish with the Handoff Report.
