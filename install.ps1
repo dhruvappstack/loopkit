@@ -55,6 +55,25 @@ function Install-Tree([string]$base, [string]$prefix) {
   }
 }
 
+function Remove-LegacyCopilotPrompts {
+  $legacyPrompts = @{
+    ".github/prompts/loop.prompt.md" = "1b272cf1bee9d49b87c788b39bb9002c3d85b1b8711c0412bac8e0c45775728f"
+    ".github/prompts/loop-review.prompt.md" = "d1a7b5774d3c60f9fdb888dac2d92e92443949d8ed96396a61ec762fee7f3037"
+  }
+  foreach ($rel in $legacyPrompts.Keys) {
+    $path = Join-Path $Target $rel
+    if (Test-Path $path -PathType Leaf) {
+      $hash = (Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
+      if ($hash -eq $legacyPrompts[$rel]) {
+        Remove-Item $path
+        Write-Host "  removed  $rel (unchanged legacy LoopKit prompt)"
+      } else {
+        Write-Host "  notice   $rel is customized; review and remove it if no longer needed"
+      }
+    }
+  }
+}
+
 Write-Host "Installing LoopKit $Version into $Target"
 Write-Host "Spine (.loop/):"
 Install-Tree (Join-Path $Src ".loop") ".loop"
@@ -66,5 +85,9 @@ $adapters = switch ($Agent) {
   "none" { @() }
   default { @($Agent) }
 }
-foreach ($a in $adapters) { Write-Host "Adapter ($a):"; Install-Tree (Join-Path $Src "adapters/$a") "" }
+foreach ($a in $adapters) {
+  Write-Host "Adapter ($a):"
+  Install-Tree (Join-Path $Src "adapters/$a") ""
+  if ($a -eq "copilot") { Remove-LegacyCopilotPrompts }
+}
 Write-Host "`nDone: $created created, $updated updated, $skipped unchanged/skipped."

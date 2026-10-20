@@ -32,7 +32,7 @@ On Windows, run `./install.ps1 -Target C:\path\to\project` instead.
 
 Then fill in `.loop/intent.md`, start a task with your coding agent, and review its proposed goal and verification plan before it begins. When the task is done, check the Handoff Report and verify the results yourself.
 
-For example, in Claude Code you can start with `/loop Fix the flaky checkout test and add a regression test`. In GitHub Copilot, run the `loop` prompt from `.github/prompts/`.
+For example, in Claude Code or GitHub Copilot, invoke `/loop` and describe the task, such as: `Fix the flaky checkout test and add a regression test`. In Copilot, `/loop-review` starts the independent review workflow.
 
 ## What gets installed
 
@@ -49,7 +49,7 @@ your-project/
 │   ├── lessons.md         MEMORY: what works in this codebase
 │   └── decisions.md       ADR-lite
 ├── .claude/commands/      /loop, /loop-resume, /loop-review
-├── .github/prompts/       loop.prompt.md, loop-review.prompt.md
+├── .github/skills/        loop/, loop-review/ (Copilot workflows)
 ├── .cursor/rules/loop.mdc
 └── CLAUDE.md, AGENTS.md, .github/copilot-instructions.md   (a marked LoopKit block is added)
 ```

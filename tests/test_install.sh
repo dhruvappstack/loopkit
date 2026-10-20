@@ -13,7 +13,8 @@ echo "# fresh install (all adapters)"
 "$ROOT/install.sh" --target "$T" >/dev/null
 for f in .loop/LOOP.md .loop/intent.md .loop/goal.md .loop/state.md .loop/log.md .loop/lessons.md \
          .loop/decisions.md .loop/playbooks/test.md .loop/.loopkit-version \
-         .claude/commands/loop.md .github/prompts/loop.prompt.md .cursor/rules/loop.mdc \
+         .claude/commands/loop.md .github/skills/loop/SKILL.md \
+         .github/skills/loop-review/SKILL.md .cursor/rules/loop.mdc \
          CLAUDE.md AGENTS.md .github/copilot-instructions.md; do
   assert "created $f" "[[ -f '$T/$f' ]]"
 done
@@ -46,9 +47,56 @@ assert "--force restores goal.md" "grep -q 'Goal: <name>' '$T/.loop/goal.md'"
 echo "# adapter selection"
 T3="$(mktemp -d)"
 "$ROOT/install.sh" --target "$T3" --agent copilot >/dev/null
-assert "copilot only: prompt exists" "[[ -f '$T3/.github/prompts/loop.prompt.md' ]]"
+assert "copilot only: loop skill exists" "[[ -f '$T3/.github/skills/loop/SKILL.md' ]]"
+assert "copilot only: review skill exists" "[[ -f '$T3/.github/skills/loop-review/SKILL.md' ]]"
 assert "copilot only: no .claude dir" "[[ ! -d '$T3/.claude' ]]"
 rm -rf "$T3"
+
+echo "# legacy Copilot prompt migration"
+T4="$(mktemp -d)"
+mkdir -p "$T4/.github/prompts"
+cat > "$T4/.github/prompts/loop.prompt.md" <<'LEGACY_LOOP'
+---
+mode: agent
+description: Start a LoopKit loop (Intake -> Goal -> Action -> Observe -> Adjust)
+---
+Follow `.loop/LOOP.md` strictly.
+
+Task: ${input:task:Describe the task in one or two sentences}
+Intent (why it matters): ${input:intent:Business or user outcome}
+Done looks like: ${input:done:Measurable criteria, or write "propose these for me"}
+Out of scope: ${input:scope:What not to touch}
+Autonomy: ${input:autonomy:supervised | semi-autonomous | autonomous}
+
+Begin with PHASE 0 (Intake). Read the `.loop/` spine, classify the task, load only the matching
+playbook(s) from `.loop/playbooks/`, then show me the restated intent, goal checklist with Verify
+commands, risks, and loop budget. Wait for my "go" before entering the loop.
+LEGACY_LOOP
+cat > "$T4/.github/prompts/loop-review.prompt.md" <<'LEGACY_REVIEW'
+---
+mode: agent
+description: Independent reviewer pass against goal.md and intent.md
+---
+Act as an independent, skeptical reviewer who has not seen the author's reasoning.
+Inputs: `.loop/intent.md`, `.loop/goal.md`, and the current branch diff against the base branch.
+
+Check: (1) every goal criterion is satisfied with evidence, (2) what could break, (3) what is missing
+(tests, docs, rollback, observability), (4) intent or scope violations, (5) weakened/deleted tests or
+hard-coded outputs. Output BLOCKING issues, NON-BLOCKING suggestions, and a verdict
+(APPROVE / REQUEST CHANGES). Do not edit code.
+LEGACY_REVIEW
+"$ROOT/install.sh" --target "$T4" --agent copilot >/dev/null
+assert "unchanged legacy prompt removed" "[[ ! -e '$T4/.github/prompts/loop.prompt.md' ]]"
+assert "unchanged legacy review prompt removed" "[[ ! -e '$T4/.github/prompts/loop-review.prompt.md' ]]"
+assert "replacement skill installed" "[[ -f '$T4/.github/skills/loop/SKILL.md' ]]"
+rm -rf "$T4"
+
+T5="$(mktemp -d)"
+mkdir -p "$T5/.github/prompts"
+echo "custom prompt" > "$T5/.github/prompts/loop.prompt.md"
+"$ROOT/install.sh" --target "$T5" --agent copilot >/dev/null
+assert "custom legacy prompt preserved" "grep -q 'custom prompt' '$T5/.github/prompts/loop.prompt.md'"
+rm -rf "$T5"
 assert "invalid agent rejected" "! '$ROOT/install.sh' --target '$T' --agent nope >/dev/null 2>&1"
 
 echo "# linter"

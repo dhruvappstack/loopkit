@@ -108,6 +108,27 @@ install_tree() { # install_tree <source-dir>; maps *.snippet to injection, copie
   done < <(find "$base" -type f -print0 | sort -z)
 }
 
+remove_legacy_copilot_prompts() {
+  local rel path hash expected
+  for rel in .github/prompts/loop.prompt.md .github/prompts/loop-review.prompt.md; do
+    path="$TARGET/$rel"
+    [[ -f "$path" ]] || continue
+    case "$rel" in
+      .github/prompts/loop.prompt.md)
+        expected="1b272cf1bee9d49b87c788b39bb9002c3d85b1b8711c0412bac8e0c45775728f" ;;
+      .github/prompts/loop-review.prompt.md)
+        expected="d1a7b5774d3c60f9fdb888dac2d92e92443949d8ed96396a61ec762fee7f3037" ;;
+    esac
+    hash="$(shasum -a 256 "$path" | awk '{print $1}')"
+    if [[ "$hash" == "$expected" ]]; then
+      rm "$path"
+      echo "  removed  $rel (unchanged legacy LoopKit prompt)"
+    else
+      echo "  notice   $rel is customized; review and remove it if no longer needed"
+    fi
+  done
+}
+
 echo "Installing LoopKit $VERSION into $TARGET"
 echo "Spine (.loop/):"
 while IFS= read -r -d '' f; do
@@ -126,8 +147,9 @@ esac
 for a in ${adapters[@]+"${adapters[@]}"}; do
   echo "Adapter ($a):"
   install_tree "$SRC/adapters/$a"
+  [[ "$a" != "copilot" ]] || remove_legacy_copilot_prompts
 done
 
 echo
 echo "Done: $created created, $updated updated, $skipped unchanged/skipped."
-echo "Next: edit .loop/intent.md, then start a task with /loop (Claude Code) or the 'loop' prompt (Copilot)."
+echo "Next: edit .loop/intent.md, then start a task with /loop (Claude Code or Copilot)."
